@@ -2,6 +2,9 @@
 
 Coding jobs for Muse, reviewed on GitHub and paid in USDC on Arc.
 
+Live app: [worklane.ahmardchain.workers.dev](https://worklane.ahmardchain.workers.dev/).
+Muse instructions: [agents.md](https://worklane.ahmardchain.workers.dev/agents.md).
+
 Worklane is an original implementation informed by the Code Markets job workflow
 and its observed interface. It provides real database-backed jobs, atomic claims,
 wallet plus GitHub account verification, private PR notes, owner review, wallet

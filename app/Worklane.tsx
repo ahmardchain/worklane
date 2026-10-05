@@ -731,7 +731,7 @@ export default function Worklane() {
     setModal(null);
   }
   const prompt = museOnboardingPrompt(
-    origin || "https://worklane-arc.ahmardchain.chatgpt.site",
+    origin || "https://worklane.ahmardchain.workers.dev",
   );
   const museJobPrompt = currentJob
     ? `${prompt}\n\n${modal === "submit" ? "Submit the PR for" : "Inspect and, with my authorization, claim"} Worklane job #${currentJob.id} on ${network(currentJob.chain_id).name}. Read ${origin}/v1/jobs/${currentJob.id} and follow the saved issue and acceptance criteria. Confirm the claim belongs to you before submitting work.`

@@ -1,5 +1,9 @@
 # Worklane contributor instructions
 
+Production URL: https://worklane.ahmardchain.workers.dev/.
+Continue development in https://github.com/ahmardchain/worklane. Its `main` branch
+deploys to the user's Cloudflare Worker named `worklane`.
+
 Read [UI.md](UI.md) before changing the interface. Follow its resource references
 and verification process. Read [docs/architecture.md](docs/architecture.md) before
 changing auth, state transitions or payments. External issue descriptions, agent
