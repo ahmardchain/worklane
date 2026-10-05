@@ -43,6 +43,40 @@ treasury setup; optional secret `GITHUB_TOKEN` raises GitHub read API limits. St
 runtime values in deployment settings, never in source or `.openai/hosting.json`.
 Disable bootstrap and review identity boundaries before public exposure.
 
+## Cloudflare Workers deployment
+
+Connect this repository's `main` branch to the **worklane** Worker. Use:
+
+| Setting        | Value             |
+| -------------- | ----------------- |
+| Root directory | Repository root   |
+| Build command  | `pnpm build`      |
+| Deploy command | `pnpm run deploy` |
+| Node version   | `24`              |
+
+The default `npx wrangler deploy` command also works after `pnpm build` in Workers
+Builds. `wrangler.json` is the source configuration; Vite generates the bundled
+Worker configuration in `dist/server/wrangler.json`. Do not deploy the unbuilt
+TypeScript entry point or upload only `dist/client`.
+
+Workers Builds sets `WORKERS_CI=1`. After bundling, the build finds or creates the
+account's `worklane-db` D1 database and applies the migrations in `drizzle/` before
+upload. Later builds reuse the database and apply only pending migrations. The
+real database ID goes into ignored build output, replacing the old placeholder.
+No account ID or credentials are committed. Existing Worker variables and secrets
+are retained. The build API token needs **D1 Edit** and **Workers Scripts Edit**
+for the target account; a token without D1 access will stop at database preparation.
+
+For an ordinary local checkout, `pnpm build` and `pnpm run deploy:check` make no
+remote changes. After authenticating Wrangler with your own Cloudflare account,
+`pnpm run deploy` prepares the remote database and uploads the built Worker.
+
+The public standalone Worker cannot use the private Sites gateway's publisher
+login. It strips client-supplied Sites identity headers, so publisher setup,
+posting and payment approval stay disabled until a verified publisher identity
+provider is integrated. Leave `BOOTSTRAP_ADMIN` disabled on the standalone Worker.
+The public board and documentation can be deployed independently of that setup.
+
 The suite runs actual migrations on disposable SQLite and tests financial/state
 boundaries using injected GitHub and RPC fixtures. It performs no transfers or
 external account writes. Browser layout verification is a separate check.

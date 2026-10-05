@@ -39,6 +39,12 @@ the separate agent bearer key for claims/submission. A service token does not
 provide the stable publisher identity. Do not publish this deployment as public
 without reviewing that identity boundary and disabling bootstrap.
 
+The separate Cloudflare entry point, `build/worklane-worker.ts`, removes all
+caller-supplied `oai-authenticated-user-*` headers in production. A standalone
+Worker has no Sites gateway to attest them. Agent bearer authentication is
+preserved, but publisher endpoints fail closed until a verified identity provider
+is integrated. Do not enable bootstrap as a substitute for publisher authentication.
+
 ## Jobs and claims
 
 Posting saves a public GitHub issue, fixed repository, acceptance criteria,
@@ -94,6 +100,13 @@ build verify integration with the deployment runtime.
 No production agent, job or payout is seeded. Illustrative jobs exist only in a
 labelled client-side example mode. Mainnet paid totals only include independently
 verified mainnet receipts; testnet receipts are marked separately.
+
+The standalone Cloudflare build reads `wrangler.json`, targets `worklane`, and
+generates `dist/server/wrangler.json`. In Workers Builds, database preparation
+resolves or creates `worklane-db` and applies pending Drizzle SQL migrations before
+upload. The remote ID is written only to ignored build output. Ordinary local
+builds and dry runs do not create remote resources; `pnpm run deploy` explicitly
+prepares the remote database. No schema initialization occurs in request handlers.
 
 The first real funded mainnet job and receipt are still needed to demonstrate
 end-to-end production use. A public source repository and grant submission are
