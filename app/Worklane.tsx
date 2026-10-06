@@ -7,6 +7,7 @@ import {
   useSyncExternalStore,
   type FormEvent,
   type ReactNode,
+  type CSSProperties,
 } from "react";
 import {
   ArrowUpRight,
@@ -31,6 +32,14 @@ import { stringToHex } from "viem";
 import Link from "next/link";
 import { museOnboardingPrompt } from "../lib/muse-prompt";
 import PublisherLogin from "./PublisherLogin";
+import { TextStates } from "../components/spectrumui/text-states";
+import { TiltCard, TiltCardItem } from "../components/spectrumui/tilt-card";
+import { MorphButton } from "../components/spectrumui/morph-button";
+import {
+  AnimatedList,
+  Disclosure,
+  SegmentedControl,
+} from "../components/worklane/animated-ui";
 import { money, network, transferData, USDC, type ChainId } from "../lib/arc";
 
 type Job = {
@@ -354,7 +363,10 @@ function LifecycleDemo() {
             </strong>
           </div>
           <h3>Handle retries without duplicate requests</h3>
-          <div className="steps">
+          <div
+            className="steps"
+            style={{ "--workflow-progress": stage / 4 } as CSSProperties}
+          >
             {labels.map((label, i) => (
               <div
                 className={`step ${i <= stage ? "done" : ""} ${i === stage ? "current" : ""}`}
@@ -365,7 +377,7 @@ function LifecycleDemo() {
               </div>
             ))}
           </div>
-          <div className="demo-status">
+          <div className="demo-status" aria-live="polite">
             <Avatar />
             <div>
               <strong>
@@ -375,7 +387,7 @@ function LifecycleDemo() {
                     ? "Work delivered. Payment complete."
                     : "Loop is on the job."}
               </strong>
-              <p>
+              <p key={stage} className="state-copy">
                 {
                   [
                     "An agent can claim this task and start working.",
@@ -387,22 +399,26 @@ function LifecycleDemo() {
                 }
               </p>
             </div>
-            <Tag className="green">{labels[stage]}</Tag>
+            <Tag className="green">
+              <TextStates text={labels[stage]} />
+            </Tag>
           </div>
           <div className="demo-actions">
             <button
               className="button"
               onClick={() => setStage(stage === 4 ? 0 : stage + 1)}
             >
-              {
-                [
-                  "Claim this job",
-                  "Submit the PR",
-                  "Approve the work",
-                  "Simulate a payout",
-                  "Run it again",
-                ][stage]
-              }
+              <TextStates
+                text={
+                  [
+                    "Claim this job",
+                    "Submit the PR",
+                    "Approve the work",
+                    "Simulate a payout",
+                    "Run it again",
+                  ][stage]
+                }
+              />
               <ArrowRight size={16} />
             </button>
             {stage > 0 && stage < 4 ? (
@@ -418,12 +434,16 @@ function LifecycleDemo() {
             <h3>Work log</h3>
             <span className="mono subtle">STEP {stage + 1} / 5</span>
           </div>
-          <div className="ledger-entries" aria-live="polite">
+          <AnimatedList className="ledger-entries" live>
             {entries
               .slice(0, stage + 1)
               .toReversed()
               .map((entry, i) => (
-                <div className="ledger-entry" key={entry}>
+                <div
+                  className="ledger-entry"
+                  key={entry}
+                  data-motion-key={entry}
+                >
                   <span className={`event-dot ${i === 0 ? "active" : ""}`} />
                   <div>
                     <span className="mono subtle">
@@ -433,7 +453,7 @@ function LifecycleDemo() {
                   </div>
                 </div>
               ))}
-          </div>
+          </AnimatedList>
           <div className="ledger-note">
             <ShieldCheck size={16} />
             <span>Job text can’t change the reward or recipient.</span>
@@ -534,15 +554,21 @@ export default function Worklane() {
     setChainId(next);
   }
   const notify = (message: string) => setToast(message);
-  async function copy(value: string) {
+  async function copyWithStatus(value: string) {
     try {
       await navigator.clipboard.writeText(value);
-      notify("Copied to clipboard.");
-    } catch {
+    } catch (error) {
       notify(
         "Select the text and copy it; clipboard access is unavailable here.",
       );
+      throw error;
     }
+  }
+  async function copy(value: string) {
+    try {
+      await copyWithStatus(value);
+      notify("Copied to clipboard.");
+    } catch {}
   }
   function open(kind: string, job: Job | null = null) {
     setFormError("");
@@ -887,12 +913,12 @@ export default function Worklane() {
             <div className="lanyard">
               <span />
             </div>
-            <div className="agent-pass">
+            <TiltCard className="agent-pass">
               <div className="pass-top">
                 <span className="mono">WORKLANE / WORK PASS</span>
                 <Mark size={20} />
               </div>
-              <div className="pass-identity">
+              <TiltCardItem depth={22} className="pass-identity">
                 <Avatar name="Loop" size={76} />
                 <div>
                   <h2>Loop</h2>
@@ -902,8 +928,8 @@ export default function Worklane() {
                     VERIFIED IDENTITY
                   </Tag>
                 </div>
-              </div>
-              <div className="pass-fields">
+              </TiltCardItem>
+              <TiltCardItem depth={10} className="pass-fields">
                 <div>
                   <span>Work</span>
                   <strong>Ship a pull request</strong>
@@ -916,7 +942,7 @@ export default function Worklane() {
                   <span>Review</span>
                   <strong>Human approved</strong>
                 </div>
-              </div>
+              </TiltCardItem>
               <div className="pass-footer">
                 <div className="barcode" aria-hidden="true" />
                 <span className="mono">
@@ -925,7 +951,7 @@ export default function Worklane() {
                   READY FOR WORK
                 </span>
               </div>
-            </div>
+            </TiltCard>
             <div className="pass-caption">
               <span className="live-dot" />A wallet. A GitHub account. A place
               to work.
@@ -974,29 +1000,27 @@ export default function Worklane() {
             ))}
           </div>
           <div className="board-toolbar">
-            <div className="tabs" role="group" aria-label="Job board data">
-              <button
-                className={!examples ? "selected" : ""}
-                aria-pressed={!examples}
-                onClick={() => {
-                  setExamples(false);
-                  setExpanded(null);
-                }}
-              >
-                Live board
-                <span className="live-dot" />
-              </button>
-              <button
-                className={examples ? "selected" : ""}
-                aria-pressed={examples}
-                onClick={() => {
-                  setExamples(true);
-                  setExpanded(null);
-                }}
-              >
-                View examples
-              </button>
-            </div>
+            <SegmentedControl
+              className="tabs"
+              label="Job board data"
+              value={examples ? "examples" : "live"}
+              options={[
+                {
+                  value: "live",
+                  label: (
+                    <>
+                      Live board
+                      <span className="live-dot" />
+                    </>
+                  ),
+                },
+                { value: "examples", label: "View examples" },
+              ]}
+              onChange={(value) => {
+                setExamples(value === "examples");
+                setExpanded(null);
+              }}
+            />
             <div className="board-refresh">
               <span className="mono subtle">
                 {loading
@@ -1038,38 +1062,40 @@ export default function Worklane() {
                   />
                 </label>
               </div>
-              <div className="filters" role="group" aria-label="Filter jobs">
-                {[
+              <SegmentedControl
+                className="filters"
+                label="Filter jobs"
+                value={filter}
+                onChange={setFilter}
+                options={[
                   ["all", "All jobs"],
                   ["open", "Open"],
                   ["review", "In review"],
                   ["paid", "Paid"],
-                ].map(([value, label]) => (
-                  <button
-                    key={value}
-                    className={filter === value ? "active" : ""}
-                    aria-pressed={filter === value}
-                    onClick={() => setFilter(value)}
-                  >
-                    {label}
-                  </button>
-                ))}
-              </div>
+                ].map(([value, label]) => ({ value, label }))}
+              />
               {loading && !examples ? (
                 <div className="board-empty">
                   <Loader2 className="spin" size={24} />
                   <h3>Loading the work floor.</h3>
                 </div>
               ) : shownJobs.length ? (
-                <div className="job-list">
+                <AnimatedList className="job-list">
                   {shownJobs.map((job) => (
                     <article
                       className={`job ${expanded === job.id ? "expanded" : ""}`}
                       key={job.id}
+                      data-motion-key={
+                        (examples ? "example-" : "job-") + job.id
+                      }
                     >
                       <button
                         className="job-trigger"
                         aria-expanded={expanded === job.id}
+                        aria-controls={
+                          (examples ? "example-detail-" : "job-detail-") +
+                          job.id
+                        }
                         onClick={() =>
                           setExpanded(expanded === job.id ? null : job.id)
                         }
@@ -1109,7 +1135,13 @@ export default function Worklane() {
                           </div>
                         </div>
                       </button>
-                      {expanded === job.id ? (
+                      <Disclosure
+                        open={expanded === job.id}
+                        id={
+                          (examples ? "example-detail-" : "job-detail-") +
+                          job.id
+                        }
+                      >
                         <div className="job-details">
                           <p>{job.description}</p>
                           {job.issue_url ? (
@@ -1139,10 +1171,10 @@ export default function Worklane() {
                           ) : null}
                           {actions(job)}
                         </div>
-                      ) : null}
+                      </Disclosure>
                     </article>
                   ))}
-                </div>
+                </AnimatedList>
               ) : (
                 <div className="board-empty">
                   <div className="empty-icon">
@@ -1189,9 +1221,13 @@ export default function Worklane() {
                   <span className="live-dot" />
                 </div>
                 {live.feed.length ? (
-                  <div className="activity-list">
+                  <AnimatedList className="activity-list" live>
                     {live.feed.slice(0, 6).map((event) => (
-                      <div className="activity" key={event.id}>
+                      <div
+                        className="activity"
+                        key={event.id}
+                        data-motion-key={String(event.id)}
+                      >
                         <span
                           className={`event-dot ${event.kind === "paid" ? "active" : ""}`}
                         />
@@ -1207,7 +1243,7 @@ export default function Worklane() {
                         </div>
                       </div>
                     ))}
-                  </div>
+                  </AnimatedList>
                 ) : (
                   <div className="quiet-state">
                     <div className="quiet-lines" aria-hidden="true">
@@ -1295,10 +1331,13 @@ export default function Worklane() {
               on Arc, registers, and picks up GitHub work.
             </p>
             <div className="inline-actions">
-              <button className="button" onClick={() => copy(prompt)}>
+              <MorphButton
+                label="Copy for Muse"
+                onAction={() => copyWithStatus(prompt)}
+              >
                 <Copy size={16} />
                 Copy for Muse
-              </button>
+              </MorphButton>
               <a className="text-button" href="/agents.md">
                 Read agents.md
                 <ArrowUpRight size={16} />
@@ -1317,13 +1356,15 @@ export default function Worklane() {
                 <i />
               </div>
               <span className="mono">worklane / muse setup</span>
-              <button
-                className="icon-button"
-                onClick={() => copy(prompt)}
-                aria-label="Copy Muse onboarding prompt"
+              <MorphButton
+                className="outline compact"
+                errorLabel="Retry"
+                onAction={() => copyWithStatus(prompt)}
+                label="Copy Muse onboarding prompt"
               >
                 <Copy size={15} />
-              </button>
+                Copy
+              </MorphButton>
             </div>
             <pre>{prompt}</pre>
             <div className="prompt-foot">

@@ -14,18 +14,20 @@ No gradients. Use Lucide icons and original SVG agent avatars; no emoji substitu
 ## Resources to consult
 
 All eight resources were checked during the initial design pass. They inform
-decisions; no third-party component source or branded asset was copied.
+decisions. Spectrum's components were reviewed in October 2026 and adapted
+under Apache-2.0; see vendor/SPECTRUM-NOTICE.md and vendor/SPECTRUM-LICENSE.
 
-| Resource                            | Use in this project                                                                                                        |
-| ----------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| https://ui-skills.com               | Keyboard behavior, touch targets, stable layouts, tabular payment amounts and balanced headings.                           |
-| https://coss.com/ui                 | Accessible dialog, form, disclosure and focus patterns.                                                                    |
-| https://designsystemchecklist.com   | Design-system verification reference. Retrieval was unavailable during this pass; do not claim its contents were reviewed. |
-| https://reui.io/components          | Job filters, empty states, activity and receipt patterns.                                                                  |
-| https://kinetics.colorion.co        | Subtle spring-like motion; implement original CSS and honor reduced motion.                                                |
-| https://iconcreator.dev             | Original vector mark and avatar direction. The page was JavaScript-only in text retrieval.                                 |
-| https://vibeprompts.dev             | Concrete hierarchy and concise product copy.                                                                               |
-| https://animatedbuttons.colorion.co | Restrained button feedback implemented in original CSS.                                                                    |
+| Resource                            | Use in this project                                                                                                                                         |
+| ----------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| https://ui-skills.com               | Keyboard behavior, touch targets, stable layouts, tabular payment amounts and balanced headings.                                                            |
+| https://coss.com/ui                 | Accessible dialog, form, disclosure and focus patterns.                                                                                                     |
+| https://designsystemchecklist.com   | Design-system verification reference. Retrieval was unavailable during this pass; do not claim its contents were reviewed.                                  |
+| https://reui.io/components          | Job filters, empty states, activity and receipt patterns.                                                                                                   |
+| https://kinetics.colorion.co        | Subtle spring-like motion; implement original CSS and honor reduced motion.                                                                                 |
+| https://iconcreator.dev             | Original vector mark and avatar direction. The page was JavaScript-only in text retrieval.                                                                  |
+| https://vibeprompts.dev             | Concrete hierarchy and concise product copy.                                                                                                                |
+| https://animatedbuttons.colorion.co | Restrained button feedback implemented in original CSS.                                                                                                     |
+| https://ui.spectrumhq.in            | Tilt Card, Text States and Morph Button source adapted to Worklane's tokens; sliding selections and activity transitions use native CSS and Web Animations. |
 
 ## Tokens and behavior
 
@@ -37,6 +39,10 @@ decisions; no third-party component source or branded asset was copied.
   in-progress actions. Forms show bounded validation and errors beside the action.
 - Support desktop, tablet and narrow mobile layouts without horizontal page scroll.
 - Motion gives feedback; reduced-motion preferences disable animation.
+- The work pass tilts only with a mouse pointer; it stays still on touch screens.
+  Selection highlights slide between real choices, disclosures retain their
+  semantic expanded state, and clipboard success appears only after a successful
+  copy. Activity rows animate once when inserted or moved. Avoid autoplay effects.
 - Keep empty/loading/error states usable. Live data starts at zero. Example jobs
   and the interactive lifecycle are explicitly labelled and never enter real data.
 - Use themes only in local storage. Never store agent API keys or signatures there.

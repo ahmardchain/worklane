@@ -9,6 +9,9 @@
   --accent-ink: #273719;
   --radius: 20px;
   --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --motion-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --motion-fast: 160ms;
+  --motion-state: 260ms;
 }
 :root[data-theme="dark"] {
   --bg: #171c19;
@@ -166,8 +169,7 @@ select:focus-visible {
     box-shadow 0.16s;
 }
 .button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 0 #20242118;
+  opacity: 0.9;
 }
 .button:active {
   transform: translateY(0) scale(0.98);
@@ -334,8 +336,6 @@ select:focus-visible {
   box-shadow:
     8px 16px 0 #20242105,
     0 13px 30px #2024210d;
-  transform-origin: 50% 0;
-  animation: pass-sway 8s ease-in-out infinite;
 }
 .pass-top {
   display: flex;
@@ -537,7 +537,7 @@ select:focus-visible {
   font-weight: 550;
   min-height: 36px;
 }
-.tabs .selected {
+.tabs button[aria-pressed="true"] {
   background: var(--surface);
   color: var(--ink);
   box-shadow: 0 1px 4px #20242112;
@@ -619,7 +619,7 @@ select:focus-visible {
   background: transparent;
   color: var(--muted);
 }
-.filters button.active {
+.filters button[aria-pressed="true"] {
   background: var(--ink);
   color: var(--surface);
 }
@@ -733,7 +733,6 @@ select:focus-visible {
 }
 .job-details {
   padding: 0 16px 16px;
-  animation: reveal 0.25s var(--ease);
 }
 .job-details > p {
   border-top: 1px solid var(--line);
@@ -1075,6 +1074,7 @@ select:focus-visible {
   margin-bottom: 20px;
 }
 .steps {
+  position: relative;
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   margin: 25px 0 24px;
@@ -1087,18 +1087,22 @@ select:focus-visible {
   gap: 8px;
   color: var(--muted);
 }
-.step:before {
+.steps:before,
+.steps:after {
   content: "";
   height: 1px;
-  width: 100%;
+  width: 80%;
   background: var(--line);
   position: absolute;
   top: 11px;
-  right: 50%;
-  transition: background 0.3s;
+  left: 10%;
+  pointer-events: none;
 }
-.step:first-child:before {
-  display: none;
+.steps:after {
+  background: var(--ink);
+  transform: scaleX(var(--workflow-progress, 0));
+  transform-origin: left;
+  transition: transform var(--motion-state) var(--motion-ease);
 }
 .step > span {
   position: relative;
@@ -1124,9 +1128,6 @@ select:focus-visible {
 .step.done {
   color: var(--ink);
 }
-.step.done:before {
-  background: var(--ink);
-}
 .step.done > span {
   background: var(--ink);
   color: var(--surface);
@@ -1137,6 +1138,7 @@ select:focus-visible {
   color: var(--accent-ink);
   border-color: var(--accent);
   box-shadow: 0 0 0 4px #c5f36325;
+  transform: scale(1.1);
 }
 .demo-status {
   padding: 15px 12px;
@@ -1192,7 +1194,6 @@ select:focus-visible {
   align-items: flex-start;
   border-top: 1px solid var(--line);
   padding: 12px 0;
-  animation: reveal 0.25s var(--ease);
 }
 .ledger-entry p {
   font-size: 11px;
@@ -1588,25 +1589,6 @@ select:focus-visible {
 .docs-page .tag {
   margin-bottom: 15px;
 }
-@keyframes pass-sway {
-  0%,
-  100% {
-    transform: rotate(2deg);
-  }
-  50% {
-    transform: rotate(-1.5deg);
-  }
-}
-@keyframes reveal {
-  from {
-    opacity: 0;
-    transform: translateY(5px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
 @keyframes spin {
   to {
     transform: rotate(360deg);
@@ -1743,9 +1725,6 @@ select:focus-visible {
     width: 300px;
     margin: 0 auto;
     padding-top: 18px;
-  }
-  .agent-pass {
-    animation-duration: 10s;
   }
   .pass-caption {
     margin-top: 17px;
@@ -2165,4 +2144,233 @@ select:focus-visible {
 }
 .form-note {
   font-size: 11px;
+}
+
+/* Spectrum UI adaptations. Attribution: vendor/SPECTRUM-NOTICE.md. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+.tilt-card {
+  perspective: 1000px;
+}
+.tilt-surface {
+  transform-style: preserve-3d;
+  transform: rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg));
+  transition: transform 360ms var(--motion-ease);
+}
+.tilt-card[data-tilted="true"] .tilt-surface {
+  transform: rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg))
+    scale(1.012);
+  transition-duration: 180ms;
+}
+.tilt-layer {
+  transform-style: preserve-3d;
+  transform: translateZ(var(--layer-depth, 0px));
+  transition: transform 360ms var(--motion-ease);
+}
+.text-states {
+  position: relative;
+  display: inline-block;
+}
+.t-text-swap {
+  display: inline-block;
+  transform: translateY(0);
+  filter: blur(0);
+  opacity: 1;
+  transition:
+    transform var(--text-swap-dur) var(--motion-ease),
+    filter var(--text-swap-dur) var(--motion-ease),
+    opacity var(--text-swap-dur) var(--motion-ease);
+}
+.t-text-swap.is-exit {
+  transform: translateY(calc(var(--text-swap-translate-y) * -1));
+  filter: blur(var(--text-swap-blur));
+  opacity: 0;
+}
+.t-text-swap.is-enter-start {
+  transform: translateY(var(--text-swap-translate-y));
+  filter: blur(var(--text-swap-blur));
+  opacity: 0;
+  transition: none;
+}
+.morph-button {
+  position: relative;
+  min-width: 172px;
+  overflow: hidden;
+  transition:
+    background var(--motion-fast),
+    color var(--motion-fast);
+}
+.morph-button[aria-disabled="true"] {
+  cursor: default;
+  transform: none;
+}
+.morph-button[data-state="success"] {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-ink);
+}
+.morph-button[data-state="error"] {
+  background: #f4e1d8;
+  border-color: #f4e1d8;
+  color: #76351e;
+}
+.morph-content {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  animation: state-arrive var(--motion-fast) var(--motion-ease);
+}
+.morph-button[data-state="success"] .morph-content svg {
+  stroke-dasharray: 30;
+  animation: check-draw 240ms var(--motion-ease);
+}
+.morph-button.compact {
+  min-width: 92px;
+  min-height: 36px;
+  padding: 7px 11px;
+  border-radius: 7px;
+  font-size: 10px;
+}
+.segmented-control {
+  position: relative;
+  isolation: isolate;
+}
+.segmented-control button {
+  position: relative;
+  z-index: 1;
+  min-height: 44px;
+  transition: color var(--motion-fast);
+}
+.selection-rail {
+  position: absolute;
+  top: var(--selection-y, 0px);
+  left: 0;
+  width: var(--selection-width, 0px);
+  height: var(--selection-height, 0px);
+  transform: translateX(var(--selection-x, 0px));
+  pointer-events: none;
+  border-radius: 6px;
+  opacity: 0;
+  transition:
+    transform var(--motion-state) var(--motion-ease),
+    width var(--motion-state) var(--motion-ease);
+}
+.segmented-control[data-measured="true"] .selection-rail {
+  opacity: 1;
+}
+.segmented-control[data-measured="true"] button[aria-pressed="true"] {
+  background: transparent;
+  box-shadow: none;
+}
+.tabs .selection-rail {
+  background: var(--surface);
+  box-shadow: 0 1px 4px #20242112;
+}
+.filters .selection-rail {
+  background: var(--ink);
+  border-radius: 5px;
+}
+.filters button[aria-pressed="true"] {
+  color: var(--surface);
+}
+.job-disclosure {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition:
+    grid-template-rows var(--motion-state) var(--motion-ease),
+    opacity var(--motion-fast);
+}
+.job-disclosure[data-open="true"] {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+.disclosure-content {
+  min-height: 0;
+  overflow: hidden;
+}
+.motion-list {
+  position: relative;
+}
+.state-copy {
+  animation: state-arrive var(--motion-state) var(--motion-ease);
+}
+.modal[open] {
+  animation: modal-arrive 180ms var(--motion-ease);
+}
+.modal[open]::backdrop {
+  animation: backdrop-arrive var(--motion-fast) ease-out;
+}
+.toast {
+  animation: toast-arrive var(--motion-state) var(--motion-ease);
+}
+@keyframes state-arrive {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes check-draw {
+  from {
+    stroke-dashoffset: 30;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes modal-arrive {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+@keyframes backdrop-arrive {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes toast-arrive {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 8px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+@media (max-width: 600px) {
+  .morph-button.compact {
+    min-height: 44px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tilt-surface,
+  .tilt-layer,
+  .t-text-swap {
+    transform: none !important;
+    filter: none !important;
+    opacity: 1 !important;
+  }
 }
