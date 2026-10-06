@@ -30,6 +30,7 @@ import {
 import { stringToHex } from "viem";
 import Link from "next/link";
 import { museOnboardingPrompt } from "../lib/muse-prompt";
+import PublisherLogin from "./PublisherLogin";
 import { money, network, transferData, USDC, type ChainId } from "../lib/arc";
 
 type Job = {
@@ -81,17 +82,10 @@ type Me = {
   isOwner: boolean;
   wallet: string | null;
   dailyCapCents: number;
+  publisherGithub?: string | null;
 };
 type Provider = {
   request(args: { method: string; params?: unknown[] }): Promise<unknown>;
-};
-type Challenge = {
-  challengeId: string;
-  message: string;
-  expiresAt: number;
-  wallet: string;
-  walletProvider: "circle" | "external";
-  chainId: ChainId;
 };
 type ReservedPayment = {
   payout: { recipient: `0x${string}`; amount_micros: string };
@@ -628,19 +622,16 @@ export default function Worklane() {
     )
       throw new Error("Switch your wallet to the selected Arc network.");
   }
-  async function setup() {
-    const address = await connect();
-    const c = await api<Challenge>("/challenge", {
-      purpose: "workspace",
-      wallet: address,
-    });
-    const signature = await provider.current!.request({
-      method: "personal_sign",
-      params: [stringToHex(c.message), address],
-    });
-    await api("/workspace", { challengeId: c.challengeId, signature });
-    notify("Treasury ownership verified. You can post jobs.");
+  async function publisherAuthenticated() {
+    await reload();
+    notify("Publisher and treasury verified. You can post jobs.");
     setModal("post");
+  }
+  async function publisherLogout() {
+    await api("/publisher/logout", {});
+    setWalletAddress(null);
+    setModal("setup");
+    notify("Publisher signed out.");
   }
   async function post(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -954,7 +945,7 @@ export default function Worklane() {
             </div>
             <button
               className="button"
-              onClick={() => open(me.configured ? "post" : "setup")}
+              onClick={() => open(me.isOwner ? "post" : "setup")}
             >
               <Plus size={17} />
               Post a job
@@ -1172,7 +1163,7 @@ export default function Worklane() {
                     onClick={() =>
                       search || filter !== "all"
                         ? (setSearch(""), setFilter("all"))
-                        : open(me.configured ? "post" : "setup")
+                        : open(me.isOwner ? "post" : "setup")
                     }
                   >
                     {search || filter !== "all"
@@ -1538,39 +1529,36 @@ export default function Worklane() {
                   Private keys stay in your wallet
                 </span>
               </div>
-              {me.signedIn ? (
-                <button
-                  className="button outline full"
-                  disabled={busy}
-                  onClick={choosePublisherWallet}
-                >
-                  <Wallet size={16} />
-                  {walletAddress
-                    ? `Publisher wallet: ${short(walletAddress)}`
-                    : "Choose publisher wallet"}
-                </button>
-              ) : null}
-              {!me.signedIn ? (
-                <a
-                  className="button full"
-                  href="/signin-with-chatgpt?return_to=/"
-                  target="_top"
-                >
-                  Sign in to continue
-                  <ArrowRight size={17} />
-                </a>
+              {!me.isOwner ? (
+                <PublisherLogin
+                  github={me.publisherGithub || "ahmardchain"}
+                  configured={me.configured}
+                  chainId={chainId}
+                  busy={busy}
+                  wallet={walletAddress}
+                  connect={connect}
+                  chooseWallet={choosePublisherWallet}
+                  sign={async (message, wallet) => {
+                    if (!provider.current)
+                      throw new Error("Choose your publisher wallet first.");
+                    return (await provider.current.request({
+                      method: "personal_sign",
+                      params: [stringToHex(message), wallet],
+                    })) as string;
+                  }}
+                  request={api}
+                  run={work}
+                  copy={copy}
+                  onAuthenticated={publisherAuthenticated}
+                />
               ) : (
                 <button
                   className="button full"
                   disabled={busy}
-                  onClick={() => work(setup)}
+                  onClick={() => setModal("post")}
                 >
-                  {busy ? (
-                    <Loader2 className="spin" size={17} />
-                  ) : (
-                    <Wallet size={17} />
-                  )}
-                  Verify treasury wallet
+                  Continue to post a job
+                  <ArrowRight size={17} />
                 </button>
               )}
             </>
@@ -1650,6 +1638,16 @@ export default function Worklane() {
                   )}
                   Post job
                 </button>
+                {me.publisherGithub ? (
+                  <button
+                    type="button"
+                    className="button outline full"
+                    disabled={busy}
+                    onClick={() => work(publisherLogout)}
+                  >
+                    Sign out publisher
+                  </button>
+                ) : null}
               </form>
             )
           ) : null}

@@ -1,15 +1,16 @@
 import handler from "./sites-worker";
-import { standaloneRequest } from "../lib/standalone-request";
+import { authenticatedStandaloneRequest } from "../lib/standalone-request";
+import type { Services } from "../lib/service";
 import type { ConnectorBinding } from "../lib/connector-contract.mjs";
 
 export default {
-  fetch(
+  async fetch(
     request: Request,
     env: Cloudflare.Env,
     ctx: ExecutionContext<{ CONNECTORS?: ConnectorBinding }>,
   ) {
     return handler.fetch(
-      import.meta.env.DEV ? request : standaloneRequest(request),
+      await authenticatedStandaloneRequest(request, env as Services),
       env,
       ctx,
     );

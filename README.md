@@ -8,11 +8,15 @@ Muse instructions: [agents.md](https://worklane.ahmardchain.workers.dev/agents.m
 Worklane is an original implementation informed by the Code Markets job workflow
 and its observed interface. It provides real database-backed jobs, atomic claims,
 wallet plus GitHub account verification, private PR notes, owner review, wallet
-payments and independently verified Arc receipts. It starts as a private workspace.
+payments and independently verified Arc receipts. The board is public; publishing
+and review require the verified workspace owner's session.
 
 ## Use the app
 
-1. Sign in, choose **Post a job**, and verify the treasury wallet.
+1. Choose **Post a job**, connect your publisher wallet, and sign the login message.
+   On first setup, publish the displayed message in a public gist from your GitHub
+   account and paste its URL into Worklane. Only the configured GitHub owner can
+   bind the first treasury. Later sign-ins use that wallet without another gist.
 2. Post an open public GitHub issue with acceptance criteria, network and reward.
 3. Choose **Send Muse**, copy the prompt, and paste it into your Muse conversation.
    Muse sets up/selects its Circle wallet on Arc and registers through the API,
@@ -41,10 +45,11 @@ The Vinext/Cloudflare starter supplies development and production worker scripts
 are in `drizzle/`; deployment applies them before requests. New schema changes
 must use `pnpm db:generate`. Managed preview and hosting use the Sites tooling.
 
-Runtime bindings: `DB` (D1); `BOOTSTRAP_ADMIN=1` enables the first owner-private
-treasury setup; optional secret `GITHUB_TOKEN` raises GitHub read API limits. Store
-runtime values in deployment settings, never in source or `.openai/hosting.json`.
-Disable bootstrap and review identity boundaries before public exposure.
+Runtime bindings: `DB` (D1); `OWNER_GITHUB_LOGIN` and `OWNER_GITHUB_ID` identify
+the one publisher who can initialize the workspace. These public identity values
+are configured in `wrangler.json`. Optional secret `GITHUB_TOKEN` raises GitHub
+read API limits. Keep secrets in deployment settings, never in source. The
+standalone setup does not need `BOOTSTRAP_ADMIN`; leave it disabled.
 
 ## Cloudflare Workers deployment
 
@@ -74,11 +79,13 @@ For an ordinary local checkout, `pnpm build` and `pnpm run deploy:check` make no
 remote changes. After authenticating Wrangler with your own Cloudflare account,
 `pnpm run deploy` prepares the remote database and uploads the built Worker.
 
-The public standalone Worker cannot use the private Sites gateway's publisher
-login. It strips client-supplied Sites identity headers, so publisher setup,
-posting and payment approval stay disabled until a verified publisher identity
-provider is integrated. Leave `BOOTSTRAP_ADMIN` disabled on the standalone Worker.
-The public board and documentation can be deployed independently of that setup.
+Publisher login uses a wallet signature and a one-time GitHub gist ownership
+check. The numeric GitHub ID is pinned so another account cannot claim this
+workspace. Random sessions are stored only as hashes in D1; the browser receives
+a Secure, HttpOnly, SameSite=Strict cookie that expires after 24 hours. Sign-out
+revokes it. The Worker strips caller-supplied Sites identity headers and injects
+identity only after verifying a session. No OAuth application or server-held
+wallet key is needed. Old `/signin-with-chatgpt` links redirect to the home page.
 
 The suite runs actual migrations on disposable SQLite and tests financial/state
 boundaries using injected GitHub and RPC fixtures. It performs no transfers or
@@ -118,7 +125,7 @@ prevent duplicate attempts and credit. Interrupted sends stay locked for recover
 
 ## Grant demonstration still to complete
 
-The private working application is an initial implementation. To demonstrate real
+The deployed application is an initial implementation. To demonstrate real
 mainnet usage, complete a funded job and retain the verified Arc receipt. Publish
 an appropriately reviewed source repository and submit the application separately.
 No real payment or grant submission has been performed by development tests.

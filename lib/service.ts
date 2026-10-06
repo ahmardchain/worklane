@@ -23,6 +23,8 @@ export type Services = {
   DB: D1Database;
   GITHUB_TOKEN?: string;
   BOOTSTRAP_ADMIN?: string;
+  OWNER_GITHUB_LOGIN?: string;
+  OWNER_GITHUB_ID?: string;
   readGithub?: GitHubFetch;
   fetcher?: typeof fetch;
 };
@@ -163,6 +165,7 @@ async function run(req: Request, svc: Services) {
           workspace.owner_id === req.headers.get("oai-authenticated-user-id"),
         wallet: workspace?.wallet ?? null,
         dailyCapCents: workspace?.daily_cap_cents ?? 10000,
+        publisherGithub: svc.OWNER_GITHUB_LOGIN ?? null,
       });
     if (path === "/v1/network") {
       const id = Number(url.searchParams.get("chain") ?? 5042);

@@ -20,7 +20,7 @@ from a wallet toast, client callback, transaction hash alone or demonstration da
 
 New D1 schema changes belong in migrations. No table creation in request handlers.
 Keep agent keys hashed, review notes private, and publisher actions bound to the
-trusted platform identity. Never add a server-held wallet private key.
+verified publisher session identity. Never add a server-held wallet private key.
 
 Use `pnpm exec prettier --write app lib tests db/schema.ts` to format edited source.
 Test fixtures use disposable identities and mocked RPC; they never send funds.

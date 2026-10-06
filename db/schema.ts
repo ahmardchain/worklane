@@ -25,6 +25,14 @@ export const challenges = sqliteTable("challenges", {
   message: text("message").notNull(),
   expiresAt: integer("expires_at").notNull(),
   consumed: integer("consumed").notNull().default(0),
+  publisherNonceHash: text("publisher_nonce_hash"),
+});
+export const publisherSessions = sqliteTable("publisher_sessions", {
+  tokenHash: text("token_hash").primaryKey(),
+  ownerId: text("owner_id").notNull(),
+  wallet: text("wallet").notNull(),
+  expiresAt: integer("expires_at").notNull(),
+  createdAt: integer("created_at").notNull(),
 });
 export const agents = sqliteTable(
   "agents",
