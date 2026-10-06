@@ -309,7 +309,7 @@ select:focus-visible {
 }
 .event-badge-stage {
   position: relative;
-  height: 414px;
+  padding: 62px 0 80px;
   overflow: clip;
   perspective: 900px;
   isolation: isolate;
@@ -344,13 +344,11 @@ select:focus-visible {
   border: 1px solid var(--line);
 }
 .badge-body {
-  position: absolute;
-  top: 62px;
-  left: 50%;
+  position: relative;
+  margin: 0 auto;
   width: min(286px, calc(100% - 38px));
   transform-origin: 50% 5px;
-  transform: translateX(-50%)
-    translate3d(var(--badge-x, 0px), var(--badge-y, 0px), 0)
+  transform: translate3d(var(--badge-x, 0px), var(--badge-y, 0px), 0)
     rotateZ(var(--badge-angle, 0deg)) rotateY(var(--badge-turn, 0deg))
     rotateX(var(--badge-pitch, 0deg));
 }
@@ -404,8 +402,7 @@ select:focus-visible {
   padding-top: 5px;
 }
 .event-badge-stage[data-reduced-motion="true"] .badge-body {
-  transform: translateX(-50%)
-    translate3d(var(--badge-x, 0px), var(--badge-y, 0px), 0);
+  transform: translate3d(var(--badge-x, 0px), var(--badge-y, 0px), 0);
 }
 .pass-top {
   display: flex;
@@ -2112,8 +2109,7 @@ select:focus-visible {
     transition: none !important;
   }
   .badge-body {
-    transform: translateX(-50%)
-      translate3d(var(--badge-x, 0px), var(--badge-y, 0px), 0);
+    transform: translate3d(var(--badge-x, 0px), var(--badge-y, 0px), 0);
   }
 }
 
