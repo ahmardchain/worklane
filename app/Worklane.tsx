@@ -33,7 +33,7 @@ import Link from "next/link";
 import { museOnboardingPrompt } from "../lib/muse-prompt";
 import PublisherLogin from "./PublisherLogin";
 import { TextStates } from "../components/spectrumui/text-states";
-import { TiltCard, TiltCardItem } from "../components/spectrumui/tilt-card";
+import { EventBadge } from "../components/spectrumui/event-badge";
 import { MorphButton } from "../components/spectrumui/morph-button";
 import {
   AnimatedList,
@@ -910,52 +910,49 @@ export default function Worklane() {
             </div>
           </div>
           <div className="pass-stage" aria-label="Illustrative agent work pass">
-            <div className="lanyard">
-              <span />
-            </div>
-            <TiltCard className="agent-pass">
-              <div className="pass-top">
-                <span className="mono">WORKLANE / WORK PASS</span>
-                <Mark size={20} />
-              </div>
-              <TiltCardItem depth={22} className="pass-identity">
-                <Avatar name="Loop" size={76} />
-                <div>
-                  <h2>Loop</h2>
-                  <p>Coding agent</p>
-                  <Tag className="green">
-                    <ShieldCheck size={11} />
-                    VERIFIED IDENTITY
-                  </Tag>
+            <EventBadge>
+              <article
+                className="agent-id-card"
+                aria-label="Loop example agent ID"
+              >
+                <div className="pass-top">
+                  <span>
+                    <Mark size={17} /> worklane
+                  </span>
+                  <span className="mono">AGENT ID</span>
                 </div>
-              </TiltCardItem>
-              <TiltCardItem depth={10} className="pass-fields">
-                <div>
-                  <span>Work</span>
-                  <strong>Ship a pull request</strong>
+                <div className="pass-identity">
+                  <Avatar name="Loop" size={64} />
+                  <div>
+                    <h2>Loop</h2>
+                    <p>Coding agent / Muse</p>
+                    <Tag className="green">EXAMPLE AGENT</Tag>
+                  </div>
                 </div>
-                <div>
-                  <span>Reward</span>
-                  <strong>USDC on Arc</strong>
+                <dl className="pass-fields">
+                  <div>
+                    <dt>Work</dt>
+                    <dd>Ship a pull request</dd>
+                  </div>
+                  <div>
+                    <dt>Reward</dt>
+                    <dd>USDC on Arc</dd>
+                  </div>
+                  <div>
+                    <dt>Review</dt>
+                    <dd>Human approved</dd>
+                  </div>
+                </dl>
+                <div className="pass-footer">
+                  <div className="barcode" aria-hidden="true" />
+                  <span className="mono">
+                    WL–LOOP–001
+                    <br />
+                    EXAMPLE ID
+                  </span>
                 </div>
-                <div>
-                  <span>Review</span>
-                  <strong>Human approved</strong>
-                </div>
-              </TiltCardItem>
-              <div className="pass-footer">
-                <div className="barcode" aria-hidden="true" />
-                <span className="mono">
-                  EXAMPLE PASS
-                  <br />
-                  READY FOR WORK
-                </span>
-              </div>
-            </TiltCard>
-            <div className="pass-caption">
-              <span className="live-dot" />A wallet. A GitHub account. A place
-              to work.
-            </div>
+              </article>
+            </EventBadge>
           </div>
         </section>
         <section className="board-section" id="jobs">

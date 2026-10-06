@@ -303,88 +303,167 @@ select:focus-visible {
 }
 .pass-stage {
   position: relative;
-  width: 350px;
+  width: 400px;
   max-width: 100%;
   margin: 0 auto;
-  padding: 23px 0 0;
-  perspective: 800px;
 }
-.lanyard {
-  height: 51px;
-  width: 36px;
-  position: absolute;
-  top: -31px;
-  left: calc(50% - 18px);
-  border-left: 2px dashed var(--muted);
-  border-right: 2px dashed var(--muted);
+.event-badge-stage {
+  position: relative;
+  height: 414px;
+  overflow: clip;
+  perspective: 900px;
+  isolation: isolate;
 }
-.lanyard span {
+.badge-lanyard {
   position: absolute;
-  bottom: -7px;
-  left: -4px;
-  width: 42px;
-  height: 11px;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  fill: none;
+  pointer-events: none;
+}
+.badge-strap {
+  stroke: var(--ink);
+  stroke-width: 13px;
+  stroke-linecap: round;
+}
+.badge-stitching {
+  stroke: var(--surface);
+  stroke-width: 1px;
+  stroke-dasharray: 2 4;
+  opacity: 0.65;
+}
+.badge-anchor {
+  position: absolute;
+  top: 0;
+  left: calc(50% - 16px);
+  width: 32px;
+  height: 8px;
+  border-radius: 5px;
+  background: var(--ink);
+  border: 1px solid var(--line);
+}
+.badge-body {
+  position: absolute;
+  top: 62px;
+  left: 50%;
+  width: min(286px, calc(100% - 38px));
+  transform-origin: 50% 5px;
+  transform: translateX(-50%)
+    translate3d(var(--badge-x, 0px), var(--badge-y, 0px), 0)
+    rotateZ(var(--badge-angle, 0deg)) rotateY(var(--badge-turn, 0deg))
+    rotateX(var(--badge-pitch, 0deg));
+}
+.badge-clip {
+  position: absolute;
+  top: -7px;
+  left: calc(50% - 15px);
+  width: 30px;
+  height: 17px;
+  border: 1px solid var(--line);
   border-radius: 5px;
   background: #aeb3aa;
+  box-shadow: inset 0 -4px 0 #2024211f;
   z-index: 2;
 }
-.agent-pass {
+.agent-id-card {
+  position: relative;
   background: var(--surface);
   border: 1px solid var(--line);
-  border-radius: 23px;
-  padding: 23px;
+  border-radius: 17px;
+  padding: 22px 18px 18px;
   box-shadow:
-    8px 16px 0 #20242105,
-    0 13px 30px #2024210d;
+    2px 3px 0 var(--line),
+    0 14px 25px #20242113;
+}
+.badge-grip {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  border-radius: 17px;
+  background: transparent;
+  cursor: grab;
+  touch-action: pan-y;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+.event-badge-stage[data-motion="dragging"] .badge-grip {
+  cursor: grabbing;
+}
+.badge-grip:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 5px;
+}
+.badge-hint {
+  font-family: "Geist Mono Variable", monospace;
+  font-size: 9px;
+  text-align: center;
+  color: var(--muted);
+  padding-top: 5px;
+}
+.event-badge-stage[data-reduced-motion="true"] .badge-body {
+  transform: translateX(-50%)
+    translate3d(var(--badge-x, 0px), var(--badge-y, 0px), 0);
 }
 .pass-top {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-bottom: 17px;
+  padding-bottom: 14px;
   border-bottom: 1px dashed var(--line);
-  color: var(--muted);
+}
+.pass-top > span:first-child {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 650;
 }
 .pass-top .mono {
-  font-size: 9px;
+  font-size: 8px;
+  letter-spacing: 0.08em;
+  color: var(--muted);
 }
 .pass-identity {
   display: flex;
   align-items: center;
-  gap: 16px;
-  padding: 24px 0;
+  gap: 13px;
+  padding: 20px 0;
 }
 .pass-identity h2 {
-  font-size: 28px;
+  font-size: 27px;
   letter-spacing: -1px;
   line-height: 1.2;
 }
 .pass-identity p {
-  font-size: 12px;
+  font-size: 10px;
   color: var(--muted);
-  margin: 3px 0 9px;
+  margin: 3px 0 7px;
 }
 .pass-identity .tag {
   font-size: 8px;
 }
 .pass-fields {
   display: grid;
-  gap: 12px;
+  gap: 10px;
   background: var(--inset);
-  padding: 16px;
-  border-radius: 12px;
+  padding: 12px;
+  border-radius: 8px;
 }
 .pass-fields > div {
   display: flex;
   justify-content: space-between;
   gap: 8px;
-  font-size: 11px;
+  font-size: 10px;
 }
-.pass-fields span {
+.pass-fields dt {
   color: var(--muted);
 }
-.pass-fields strong {
+.pass-fields dd {
   font-weight: 550;
+  text-align: right;
 }
 .pass-footer {
   display: flex;
@@ -392,8 +471,8 @@ select:focus-visible {
   align-items: center;
   gap: 15px;
   border-top: 1px dashed var(--line);
-  margin-top: 19px;
-  padding-top: 16px;
+  margin-top: 16px;
+  padding-top: 12px;
 }
 .pass-footer .mono {
   font-size: 8px;
@@ -434,18 +513,6 @@ select:focus-visible {
     79px 0 var(--ink),
     82px 0 var(--ink),
     87px 0 var(--ink);
-}
-.pass-caption {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 7px;
-  font-size: 9px;
-  color: var(--muted);
-  margin: 20px -15px 0;
-}
-.pass-caption .live-dot {
-  background: #84ac43;
 }
 .section,
 .board-section,
@@ -1607,7 +1674,7 @@ select:focus-visible {
     font-size: 80px;
   }
   .pass-stage {
-    width: 370px;
+    width: 420px;
   }
 }
 @media (max-width: 900px) {
@@ -1626,10 +1693,7 @@ select:focus-visible {
     font-size: 58px;
   }
   .pass-stage {
-    width: 300px;
-  }
-  .agent-pass {
-    padding: 19px;
+    width: 350px;
   }
   .pass-identity {
     gap: 10px;
@@ -1722,12 +1786,8 @@ select:focus-visible {
     font-size: 10px;
   }
   .pass-stage {
-    width: 300px;
+    width: 350px;
     margin: 0 auto;
-    padding-top: 18px;
-  }
-  .pass-caption {
-    margin-top: 17px;
   }
   .board-section,
   .section,
@@ -2017,7 +2077,7 @@ select:focus-visible {
     font-size: 43px;
   }
   .pass-stage {
-    width: 270px;
+    width: 100%;
   }
   .job-trigger {
     padding: 12px;
@@ -2051,8 +2111,9 @@ select:focus-visible {
     animation: none !important;
     transition: none !important;
   }
-  .agent-pass {
-    transform: rotate(0);
+  .badge-body {
+    transform: translateX(-50%)
+      translate3d(var(--badge-x, 0px), var(--badge-y, 0px), 0);
   }
 }
 
