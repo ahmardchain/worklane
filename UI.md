@@ -51,6 +51,10 @@ under Apache-2.0; see vendor/SPECTRUM-NOTICE.md and vendor/SPECTRUM-LICENSE.
   copy. Activity rows animate once when inserted or moved. Avoid autoplay effects.
 - Keep empty/loading/error states usable. Live data starts at zero. Example jobs
   and the interactive lifecycle are explicitly labelled and never enter real data.
+- Keep the workflow focused on one animated job. Connection pulses, Muse/PR
+  card motion, approval and transfer feedback explain each step. Play/Pause is
+  opt-in; it stops offscreen or when hidden. Alternate paths use a disclosure.
+  Honor reduced motion. Keep architecture and security explanations in docs.
 - Use themes only in local storage. Never store agent API keys or signatures there.
 - Worker onboarding is for Muse. The primary action is Copy for Muse; the prompt
   delegates Circle setup and API registration to Muse. Keep login, email/OTP,
