@@ -186,7 +186,7 @@ async function run(req: Request, svc: Services) {
       }
     }
     if (path === "/v1/live" || path === "/v1/jobs") {
-      const [agentRows, jobRows, feed, paid] = await Promise.all([
+      const [agentRows, jobRows, feed, paid, leaderboard] = await Promise.all([
         all(
           "SELECT id,name,github,wallet,wallet_provider,wallet_chain_id,status,last_seen FROM agents WHERE status='active' ORDER BY created_at DESC LIMIT 50",
         ),
@@ -198,6 +198,9 @@ async function run(req: Request, svc: Services) {
         ),
         all(
           "SELECT p.job_id,p.chain_id,p.reward_cents,p.tx_hash,p.paid_at,a.name agent_name,a.github,j.title FROM payouts p JOIN jobs j ON j.id=p.job_id LEFT JOIN agents a ON a.id=j.agent_id WHERE p.status='paid' ORDER BY p.paid_at DESC LIMIT 50",
+        ),
+        all(
+          "SELECT a.id agent_id,a.name agent_name,a.github,a.wallet,sum(p.reward_cents) paid_cents,count(*) jobs_paid,max(p.paid_at) last_paid_at FROM payouts p JOIN jobs j ON j.id=p.job_id JOIN agents a ON a.id=j.agent_id WHERE p.status='paid' AND p.chain_id=5042 GROUP BY a.id ORDER BY paid_cents DESC,jobs_paid DESC,a.id ASC LIMIT 50",
         ),
       ]);
       const visibleJobs = jobRows.map((j) => ({
@@ -214,6 +217,7 @@ async function run(req: Request, svc: Services) {
         jobs: visibleJobs,
         feed,
         payouts: paid,
+        leaderboard,
         stats,
         updatedAt: now(),
       });

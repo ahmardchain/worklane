@@ -7,7 +7,6 @@ import {
   useSyncExternalStore,
   type FormEvent,
   type ReactNode,
-  type CSSProperties,
 } from "react";
 import {
   ArrowUpRight,
@@ -26,13 +25,21 @@ import {
   Loader2,
   CircleDollarSign,
   FileCode2,
-  Undo2,
 } from "lucide-react";
 import { stringToHex } from "viem";
 import Link from "next/link";
 import { museOnboardingPrompt } from "../lib/muse-prompt";
 import PublisherLogin from "./PublisherLogin";
-import { TextStates } from "../components/spectrumui/text-states";
+import { Avatar } from "../components/worklane/avatar";
+import { WorklaneWorkflow } from "../components/worklane/workflow";
+import {
+  WorklaneCommunity,
+  ActivityFeed,
+  type Earner,
+  type PublicAgent,
+  type PublicEvent,
+} from "../components/worklane/community";
+import "./workflow.css";
 import { EventBadge } from "../components/spectrumui/event-badge";
 import { MorphButton } from "../components/spectrumui/morph-button";
 import {
@@ -51,6 +58,7 @@ type Job = {
   reward_cents: number;
   chain_id: number;
   status: string;
+  agent_id?: string;
   agent_name?: string;
   agent_github?: string;
   agent_wallet?: string;
@@ -61,18 +69,10 @@ type Job = {
   claim_expires?: number;
 };
 type Live = {
-  agents: {
-    id: string;
-    name: string;
-    github: string;
-    wallet: string;
-    wallet_provider: "circle" | "external";
-    wallet_chain_id: number;
-    status: string;
-    last_seen: number;
-  }[];
+  agents: PublicAgent[];
+  leaderboard: Earner[];
   jobs: Job[];
-  feed: { id: number; kind: string; text: string; created_at: number }[];
+  feed: PublicEvent[];
   payouts: {
     job_id: number;
     chain_id: number;
@@ -148,6 +148,7 @@ declare global {
 }
 const initial: Live = {
   agents: [],
+  leaderboard: [],
   jobs: [],
   feed: [],
   payouts: [],
@@ -245,35 +246,6 @@ function Mark({ size = 24 }: { size?: number }) {
     </svg>
   );
 }
-function Avatar({
-  name = "Loop",
-  size = 36,
-}: {
-  name?: string;
-  size?: number;
-}) {
-  const colors = ["#b7d8ff", "#d2bfff", "#ffccab", "#d8efa1", "#f4b9d0"];
-  const color =
-    colors[[...name].reduce((a, c) => a + c.charCodeAt(0), 0) % colors.length];
-  return (
-    <svg
-      className="avatar"
-      width={size}
-      height={size}
-      viewBox="0 0 48 48"
-      aria-hidden="true"
-    >
-      <rect x="2" y="2" width="44" height="44" rx="15" fill={color} />
-      <path d="M14 17h5v8h-5zm15 0h5v8h-5z" fill="#202421" />
-      <path
-        d="M18 32h12"
-        stroke="#202421"
-        strokeWidth="2.5"
-        strokeLinecap="round"
-      />
-    </svg>
-  );
-}
 function Tag({
   children,
   className = "",
@@ -332,137 +304,6 @@ function Modal({
     </dialog>
   );
 }
-function LifecycleDemo() {
-  const [stage, setStage] = useState(0);
-  const labels = ["Open", "Claimed", "Submitted", "Approved", "Paid"];
-  const entries = [
-    "Job posted · 25.00 USDC",
-    "Loop claimed the job · 24h lease",
-    "Pull request submitted for review",
-    "Owner approved the reviewed work",
-    "Example payment receipt recorded",
-  ];
-  return (
-    <section className="section" id="how-it-works">
-      <div className="section-intro">
-        <div>
-          <Tag>THE WORKFLOW</Tag>
-          <h2>From a task to a payout.</h2>
-          <p>Try one job, from beginning to end.</p>
-        </div>
-        <span className="subtle mono">
-          INTERACTIVE EXAMPLE · NO MONEY MOVES
-        </span>
-      </div>
-      <div className="demo-grid">
-        <div className="panel demo-work">
-          <div className="job-eyebrow">
-            <span className="mono">example/request-kit · issue #24</span>
-            <strong>
-              25.00 <small>USDC</small>
-            </strong>
-          </div>
-          <h3>Handle retries without duplicate requests</h3>
-          <div
-            className="steps"
-            style={{ "--workflow-progress": stage / 4 } as CSSProperties}
-          >
-            {labels.map((label, i) => (
-              <div
-                className={`step ${i <= stage ? "done" : ""} ${i === stage ? "current" : ""}`}
-                key={label}
-              >
-                <span>{i < stage ? <Check size={12} /> : i + 1}</span>
-                <small>{label}</small>
-              </div>
-            ))}
-          </div>
-          <div className="demo-status" aria-live="polite">
-            <Avatar />
-            <div>
-              <strong>
-                {stage === 0
-                  ? "Ready for an agent."
-                  : stage === 4
-                    ? "Work delivered. Payment complete."
-                    : "Loop is on the job."}
-              </strong>
-              <p key={stage} className="state-copy">
-                {
-                  [
-                    "An agent can claim this task and start working.",
-                    "The agent holds a 24-hour claim.",
-                    "The owner reviews the pull request on GitHub.",
-                    "The saved reward and wallet are ready for payment.",
-                    "A real payout also needs a verified Arc receipt.",
-                  ][stage]
-                }
-              </p>
-            </div>
-            <Tag className="green">
-              <TextStates text={labels[stage]} />
-            </Tag>
-          </div>
-          <div className="demo-actions">
-            <button
-              className="button"
-              onClick={() => setStage(stage === 4 ? 0 : stage + 1)}
-            >
-              <TextStates
-                text={
-                  [
-                    "Claim this job",
-                    "Submit the PR",
-                    "Approve the work",
-                    "Simulate a payout",
-                    "Run it again",
-                  ][stage]
-                }
-              />
-              <ArrowRight size={16} />
-            </button>
-            {stage > 0 && stage < 4 ? (
-              <button className="text-button" onClick={() => setStage(0)}>
-                <Undo2 size={14} />
-                Reset example
-              </button>
-            ) : null}
-          </div>
-        </div>
-        <div className="panel demo-ledger">
-          <div className="panel-title">
-            <h3>Work log</h3>
-            <span className="mono subtle">STEP {stage + 1} / 5</span>
-          </div>
-          <AnimatedList className="ledger-entries" live>
-            {entries
-              .slice(0, stage + 1)
-              .toReversed()
-              .map((entry, i) => (
-                <div
-                  className="ledger-entry"
-                  key={entry}
-                  data-motion-key={entry}
-                >
-                  <span className={`event-dot ${i === 0 ? "active" : ""}`} />
-                  <div>
-                    <span className="mono subtle">
-                      {i === 0 ? "JUST NOW" : "PREVIOUS STEP"}
-                    </span>
-                    <p>{entry}</p>
-                  </div>
-                </div>
-              ))}
-          </AnimatedList>
-          <div className="ledger-note">
-            <ShieldCheck size={16} />
-            <span>Job text can’t change the reward or recipient.</span>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
 export default function Worklane() {
   const [live, setLive] = useState<Live>(initial),
     [me, setMe] = useState<Me>({
@@ -477,6 +318,11 @@ export default function Worklane() {
   const [examples, setExamples] = useState(false),
     [filter, setFilter] = useState("all"),
     [search, setSearch] = useState("");
+  const [receiptChain, setReceiptChain] = useState("5042");
+  const receiptPayouts = live.payouts.filter(
+    (payout) =>
+      receiptChain === "all" || String(payout.chain_id) === receiptChain,
+  );
   const [expanded, setExpanded] = useState<number | null>(null),
     [modal, setModal] = useState<string | null>(null),
     [currentJob, setCurrentJob] = useState<Job | null>(null);
@@ -1212,49 +1058,7 @@ export default function Worklane() {
               )}
             </div>
             <aside className="board-side">
-              <div className="panel activity-panel">
-                <div className="panel-title">
-                  <h3>Activity</h3>
-                  <span className="live-dot" />
-                </div>
-                {live.feed.length ? (
-                  <AnimatedList className="activity-list" live>
-                    {live.feed.slice(0, 6).map((event) => (
-                      <div
-                        className="activity"
-                        key={event.id}
-                        data-motion-key={String(event.id)}
-                      >
-                        <span
-                          className={`event-dot ${event.kind === "paid" ? "active" : ""}`}
-                        />
-                        <div>
-                          <span className="mono subtle">
-                            {new Date(event.created_at).toLocaleTimeString([], {
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            })}
-                            <span>{event.kind}</span>
-                          </span>
-                          <p>{event.text}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </AnimatedList>
-                ) : (
-                  <div className="quiet-state">
-                    <div className="quiet-lines" aria-hidden="true">
-                      <span />
-                      <span />
-                      <span />
-                    </div>
-                    <p>The floor is quiet.</p>
-                    <span>
-                      Claims, reviews, and verified payments will appear here.
-                    </span>
-                  </div>
-                )}
-              </div>
+              <ActivityFeed feed={live.feed} />
               <div className="settlement-panel">
                 <div className="panel-title">
                   <h3>
@@ -1295,25 +1099,14 @@ export default function Worklane() {
               </div>
             </aside>
           </div>
-          <div className="floor-strip">
-            <span className="mono subtle">ON THE FLOOR</span>
-            {live.agents.length ? (
-              <div className="floor-agents">
-                {live.agents.slice(0, 8).map((a) => (
-                  <span key={a.id}>
-                    <Avatar name={a.name} size={27} />
-                    {a.name}
-                  </span>
-                ))}
-              </div>
-            ) : (
-              <span className="subtle">Your Muse could be the first.</span>
-            )}
-            <button className="text-button" onClick={() => open("hire")}>
-              Set up Muse
-              <ArrowUpRight size={14} />
-            </button>
-          </div>
+          <WorklaneCommunity
+            agents={live.agents}
+            leaderboard={live.leaderboard || []}
+            feed={live.feed}
+            jobs={live.jobs}
+            updatedAt={live.updatedAt}
+            onSetup={() => open("hire")}
+          />
         </section>
         <section className="onboarding-section" id="get-started">
           <div className="onboarding-copy">
@@ -1373,7 +1166,7 @@ export default function Worklane() {
             </div>
           </div>
         </section>
-        <LifecycleDemo />
+        <WorklaneWorkflow />
         <section className="receipts-section">
           <div className="section-intro">
             <div>
@@ -1385,12 +1178,23 @@ export default function Worklane() {
               </p>
             </div>
             <span className="mono subtle">
-              {live.payouts.length} VERIFIED PAYMENTS
+              {receiptPayouts.length} RECENT VERIFIED PAYMENTS
             </span>
           </div>
-          {live.payouts.length ? (
+          <SegmentedControl
+            label="Receipt network"
+            value={receiptChain}
+            onChange={setReceiptChain}
+            className="receipt-filters"
+            options={[
+              { value: "5042", label: "Mainnet" },
+              { value: "5042002", label: "Testnet" },
+              { value: "all", label: "All networks" },
+            ]}
+          />
+          {receiptPayouts.length ? (
             <div className="receipt-list">
-              {live.payouts.map((p) => (
+              {receiptPayouts.map((p) => (
                 <a
                   className="receipt-row"
                   href={`${network(p.chain_id).explorer}/tx/${p.tx_hash}`}
@@ -1402,6 +1206,10 @@ export default function Worklane() {
                   <span>
                     <strong>{p.agent_name}</strong>
                     <small>{p.title}</small>
+                    <small className="mono">
+                      {short(p.tx_hash)} ·{" "}
+                      {new Date(p.paid_at).toLocaleDateString()}
+                    </small>
                   </span>
                   <span className="receipt-amount">
                     {money(p.reward_cents)} USDC
@@ -1416,7 +1224,15 @@ export default function Worklane() {
           ) : (
             <div className="receipt-empty">
               <ShieldCheck size={23} />
-              <span>No verified payments yet.</span>
+              <span>
+                No verified{" "}
+                {receiptChain === "5042"
+                  ? "mainnet "
+                  : receiptChain === "5042002"
+                    ? "testnet "
+                    : ""}
+                payments yet.
+              </span>
               <p>
                 The first real receipt will appear after approved work is paid
                 on Arc.

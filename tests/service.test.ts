@@ -1,5 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import { sha } from "../lib/service.ts";
 import {
   fixture,
   agentKey,
@@ -496,6 +497,98 @@ test("payment reservation prevents a second send and verified settlement is idem
     "paid",
   );
   assert.equal((await f.call("/live")).data.stats.paid_cents, 2500);
+});
+test("public earnings use all verified mainnet payouts and exclude testnet and pending rewards", async (t) => {
+  const f = await fixture();
+  t.after(() => f.sqlite.close());
+  f.sqlite
+    .prepare(
+      "INSERT INTO agents(id,name,github,github_id,wallet,key_hash,created_at,last_seen) VALUES (?,?,?,?,?,?,?,?)",
+    )
+    .run(
+      "test-agent-33",
+      "Dot",
+      "other-worker",
+      33,
+      recipient,
+      await sha("private-test-key"),
+      Date.now(),
+      Date.now(),
+    );
+  const insertJob = f.sqlite.prepare(
+    "INSERT INTO jobs(title,description,issue_url,repo,reward_cents,chain_id,payer,owner_id,status,agent_id,created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?)",
+  );
+  const insertPayout = f.sqlite.prepare(
+    "INSERT INTO payouts(job_id,chain_id,sender,recipient,amount_micros,reward_cents,min_block,status,tx_hash,approved_at,paid_at) VALUES (?,?,?,?,?,?,?,?,?,?,?)",
+  );
+  function seed(
+    agentId: string,
+    reward: number,
+    chain = 5042,
+    status = "paid",
+  ) {
+    const created = Date.now();
+    const id = Number(
+      insertJob.run(
+        "Example fixture job",
+        "Fixture only",
+        "https://github.com/owner/repo/issues/1",
+        "owner/repo",
+        reward,
+        chain,
+        payer,
+        "test-owner",
+        status === "paid" ? "paid" : "approved",
+        agentId,
+        created,
+      ).lastInsertRowid,
+    );
+    insertPayout.run(
+      id,
+      chain,
+      payer,
+      recipient,
+      (BigInt(reward) * 10000n).toString(),
+      reward,
+      "101",
+      status,
+      status === "paid" ? `0x${id.toString(16).padStart(64, "0")}` : null,
+      created,
+      status === "paid" ? created + id : null,
+    );
+  }
+  for (let i = 0; i < 52; i++) seed("test-agent-22", 100);
+  seed("test-agent-33", 6000);
+  seed("test-agent-22", 9000, 5042002);
+  seed("test-agent-22", 9000, 5042, "approved");
+  for (const path of ["/live", "/jobs"]) {
+    const response = await f.call(path);
+    assert.equal(response.status, 200);
+    assert.equal(response.data.payouts.length, 50);
+    assert.equal(response.data.stats.paid_cents, 11200);
+    assert.equal(response.data.leaderboard.length, 2);
+    assert.equal(response.data.leaderboard[0].agent_name, "Dot");
+    assert.equal(response.data.leaderboard[0].paid_cents, 6000);
+    assert.equal(response.data.leaderboard[1].paid_cents, 5200);
+    assert.equal(response.data.leaderboard[1].jobs_paid, 52);
+    assert.deepEqual(Object.keys(response.data.leaderboard[0]).sort(), [
+      "agent_id",
+      "agent_name",
+      "github",
+      "jobs_paid",
+      "last_paid_at",
+      "paid_cents",
+      "wallet",
+    ]);
+    assert.equal(
+      JSON.stringify(response.data.leaderboard).includes("key_hash"),
+      false,
+    );
+    assert.equal(
+      JSON.stringify(response.data.leaderboard).includes("private-test-key"),
+      false,
+    );
+  }
 });
 test("database ledger is append-only and keys revoke immediately", async (t) => {
   const f = await fixture();
