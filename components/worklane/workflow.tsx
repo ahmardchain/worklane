@@ -158,6 +158,7 @@ function FlowTrack({
 }
 function StageScene({ stage, revision }: { stage: Stage; revision: number }) {
   const paying = ["signing", "broadcast", "paid"].includes(stage);
+  const shipped = stage === "submitted" || stage === "approved";
   return (
     <div
       className={`flow-scene scene-${stage}`}
@@ -201,25 +202,25 @@ function StageScene({ stage, revision }: { stage: Stage; revision: number }) {
           </span>
           <div className="scene-document">
             <span className="scene-document-head">
-              {stage === "submitted" ? (
+              {shipped ? (
                 <GitPullRequest size={16} />
               ) : (
                 <ClipboardList size={16} />
               )}
-              <small>
-                {stage === "submitted" ? "PULL REQUEST #31" : "ISSUE #24"}
-              </small>
+              <small>{shipped ? "PULL REQUEST #31" : "ISSUE #24"}</small>
             </span>
             <strong>
-              {stage === "submitted"
-                ? "The fix is ready."
-                : "Handle request retries."}
+              {shipped ? "The fix is ready." : "Handle request retries."}
             </strong>
             <span className="scene-code-line" />
             <span className="scene-code-line" />
             <span className="scene-code-line" />
             <span className="scene-document-foot">
-              {stage === "submitted" ? "Ready for review" : "25.00 USDC"}
+              {stage === "approved"
+                ? "Review accepted"
+                : shipped
+                  ? "Ready for review"
+                  : "25.00 USDC"}
             </span>
           </div>
           {stage === "approved" && (
@@ -448,7 +449,7 @@ function Lifecycle() {
             <RotateCcw size={16} />
           </button>
         </div>
-        {stage !== "open" && (
+        {stage !== "open" && stage !== "approved" && (
           <details className="workflow-options">
             <summary>Try another path</summary>
             <div className="workflow-branches">
